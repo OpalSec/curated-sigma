@@ -1,0 +1,53 @@
+title: Malicious Onenote Execution
+id: 60366140-793a-467d-a295-338d1bb1a475
+status: experimental
+description: Detects spawning of anomalous processes by OneNote
+author: Opalsec
+date: 2023/02/05
+references:
+    - https://github.com/trustedsec/defensive-scripts/blob/main/onenote_asyncrat_dropper.xml
+    - https://yaraify.abuse.ch/yarahub/rule/MALWARE_OneNote_Delivery_Jan23
+    - https://twitter.com/Max_Mal_/status/1621184671403884545
+tags:
+     - attack.t1218
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection1:
+        Image|endswith:
+            - 'regsvr32.exe'
+            - 'rundll32.exe'
+            - 'cscript.exe'
+            - 'wscript.exe'
+            - 'wmic.exe'
+            - 'mshta.exe'
+            - 'powershell.exe'
+            - 'cmd.exe'
+    selection2:
+        OriginalFileName:
+            - 'regsvr32.exe'
+            - 'rundll32.exe'
+            - 'cscript.exe'
+            - 'wscript.exe'
+            - 'wmic.exe'
+            - 'mshta.exe'
+            - 'powershell.exe'
+            - 'cmd.exe'
+    selection3:
+        Description:
+            - 'Microsoft(C) Register Server' #regsvr32.exe binary Description
+            - 'Windows host process (Rundll32)' #rundll32.exe binary Description
+            - 'Microsoft Console Based Script Host' #cscript.exe binary Description
+            - 'Microsoft Windows Based Script Host' #wscript.exe binary Description
+            - 'WMI Commandline Utility' #wmic.exe binary Description
+            - 'Microsoft (R) HTML Application host' #mshta.exe binary Description
+            - 'Windows PowerShell' #powershell.exe binary Description
+            - 'Windows Command Processor' #cmd.exe binary Description
+    filter:
+        ParentImage|endswith:
+            - 'OneNote.exe'
+    condition: 1 of selection* and filter
+falsepositives:
+     - Binaries with the same description (none identified thusfar), 3rd-party binaries ending in the targeted Image/Filename string.
+level: high
